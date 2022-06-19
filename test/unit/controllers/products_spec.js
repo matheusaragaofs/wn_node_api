@@ -1,5 +1,6 @@
 import ProductsController from "../../../src/controllers/products";
 import sinon from "sinon";
+import Product from "../../../src/models/product";
 import { expect } from "chai";
 describe("Controllers: Products", () => {
   const defaultProduct = [
@@ -11,17 +12,20 @@ describe("Controllers: Products", () => {
   ];
 
   describe("get() products", () => {
-    it("should return a list of products", () => {
+    it("should return a list of products", async () => {
       const request = {};
       const response = {
         send: sinon.spy(),
         // Os spies permitem gravar informações como quantas vezes uma função foi chamada
       };
-      const productsController = new ProductsController();
-      productsController.get(request, response);
+      Product.find = sinon.stub() //. Desta maneira será possível adicionar qualquer comportamento para essa função simulando uma chamada de banco de dados por exemplo.
+      Product.find.withArgs({}).resolves(defaultProduct)
+  
+      const productsController = new ProductsController(Product);
+      await productsController.get(request, response)
 
-      expect(response.send.called).to.be.true; // Verifica se a função send foi chamada
-      expect(response.send.calledWith(defaultProduct)).to.be.true; // Verifica se foi chamada com o defaultProduct como parâmetro
+      sinon.assert.calledWith(response.send,defaultProduct)
+      //Isso valida que a função get foi chamada, chamou a função find do model Product passando um objeto vazio e ele retornou uma Promise contendo o defaultProduct
     });
   });
 });
